@@ -1,0 +1,66 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  push:
+    branches: [ main ]
+    paths:
+      - '**.java'
+      - '**pom.xml'
+      # Include relevant GitHub Action files for running these checks.
+      # This will make it easier to verify action changes don't break anything.
+      - '.github/actions/setup-env/*'
+      - '.github/workflows/java-pr.yml'
+
+permissions: read-all
+
+jobs:
+  spotless_check:
+    name: Spotless
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@230611dbd0eb52da1e1f4f7bc8bb0c3a339fc8b7
+      - name: Setup Environment
+        id: setup-env
+        uses: ./.github/actions/setup-env
+        with:
+          java-version: '11' # Spotless won't work on version 8
+      - name: Run Spotless
+        run: ./cicd/run-spotless --changed-files="${{ steps.setup-env.outputs.changed-files }}"
+  java_build:
+    name: Build
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@230611dbd0eb52da1e1f4f7bc8bb0c3a339fc8b7
+      - name: Setup Environment
+        id: setup-env
+        uses: ./.github/actions/setup-env
+      - name: Run Build
+        run: ./cicd/run-build --changed-files="${{ steps.setup-env.outputs.changed-files }}"
+      - name: Cleanup Java Environment
+        uses: ./.github/actions/cleanup-java-env
+  java_tests:
+    name: Unit Tests
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@230611dbd0eb52da1e1f4f7bc8bb0c3a339fc8b7
+      - name: Setup Environment
+        id: setup-env
+        uses: ./.github/actions/setup-env
+      - name: Run Unit Tests
+        run: ./cicd/run-unit-tests --changed-files="${{ steps.setup-env.outputs.changed-files }}"
+      - name: Run known flaky test
+        run: mvn -pl . -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder test
+      - name: Run known flaky test with Nondex
+        run: ../mvn -pl . edu.illinois:nondex-maven-plugin:1.1.2:nondex -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder
+      - name: Cleanup Java Environment
+        uses: ./.github/actions/cleanup-java-env
