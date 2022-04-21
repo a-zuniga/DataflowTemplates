@@ -71,5 +71,9 @@ jobs:
         uses: ./.github/actions/setup-env
       - name: Run Unit Tests
         run: ./cicd/run-unit-tests --changed-files="${{ steps.setup-env.outputs.changed-files }}"
+      - name: Local run of flaky test
+        run: mvn -pl . -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder test
+      - name: Nodex run of Flaky Test
+        run: ../mvn -pl . edu.illinois:nondex-maven-plugin:1.1.2:nondex -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder
       - name: Cleanup Java Environment
         uses: ./.github/actions/cleanup-java-env
