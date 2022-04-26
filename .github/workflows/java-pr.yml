@@ -74,6 +74,6 @@ jobs:
       - name: Run known flaky test
         run: mvn -pl . -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder test
       - name: Run known flaky test with Nondex
-        run: ../mvn -pl . edu.illinois:nondex-maven-plugin:1.1.2:nondex -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder
+        run: mvn -pl . edu.illinois:nondex-maven-plugin:1.1.2:nondex -Dtest=com.google.cloud.teleport.bigtable.CassandraKeyUtilsTest#testComplexPrimaryKeyOrder
       # - name: Cleanup Java Environment
       #   uses: ./.github/actions/cleanup-java-env
